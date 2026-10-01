@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id           String                @id @default(cuid())
+  name         String
+  phone        String?
+  group        CustomerGroup         @default(RETAIL)
+  area         String?
+  status       CustomerStatus        @default(ACTIVE)
+  notes        String?
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+  transactions CustomerTransaction[]
+
+  @@index([group])
+  @@index([status])
+  @@index([area])
+}
+
+model CustomerTransaction {
+  id          String          @id @default(cuid())
+  customerId  String
+  customer    Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type        CustomerTxType
+  amount      Float
+  description String?
+  dateBs      String
+  dateAd      DateTime        @default(now())
+  createdAt   DateTime        @default(now())
+
+  @@index([customerId])
+  @@index([type])
+}
+
+model Vendor {
+  id           String               @id @default(cuid())
+  name         String
+  phone        String?
+  area         String?
+  notes        String?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  transactions VendorTransaction[]
+
+  @@index([area])
+}
+
+model VendorTransaction {
+  id          String          @id @default(cuid())
+  vendorId    String
+  vendor      Vendor          @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  type        VendorTxType
+  amount      Float
+  description String?
+  dateBs      String
+  dateAd      DateTime        @default(now())
+  createdAt   DateTime        @default(now())
+
+  @@index([vendorId])
+  @@index([type])
+}
+
+enum CustomerGroup {
+  RETAIL
+  WHOLESALE
+  VIP
+}
+
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum CustomerTxType {
+  CREDIT_SALE
+  PAYMENT
+}
+
+enum VendorTxType {
+  PURCHASE
+  PAYMENT
+}
